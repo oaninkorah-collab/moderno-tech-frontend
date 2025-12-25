@@ -192,7 +192,7 @@ async function generateReceipt() {
   };
 
   // SAVE TO BACKEND
-  await fetch("https://moderno-tech-backend.onrender.com/jobs", {
+  await fetch("https://moderno-tech-backend-1.onrender.com/jobs", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(jobData)
@@ -215,4 +215,5 @@ async function generateReceipt() {
   `;
   show(receiptBox);
 }
+
 
