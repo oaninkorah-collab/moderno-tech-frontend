@@ -174,7 +174,7 @@
       `Subtotal ₵${subtotal.toFixed(2)} | VAT ₵${vat.toFixed(2)} | Total ₵${(subtotal+vat).toFixed(2)}`;
   }
 
-  async function generateReceipt() {
+async function generateReceipt() {
   let subtotal = priceType.value === "sqft"
     ? width.value * height.value * unitPrice.value
     : Number(fixedPrice.value);
@@ -192,7 +192,7 @@
   };
 
   // SAVE TO BACKEND
-  await fetch("https://moderno-tech-backend-1.onrender.com/jobs", {
+  await fetch("https://moderno-tech-backend.onrender.com/jobs", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(jobData)
@@ -215,3 +215,4 @@
   `;
   show(receiptBox);
 }
+
