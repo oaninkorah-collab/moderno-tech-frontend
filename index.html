@@ -16,14 +16,12 @@
       padding: 20px;
     }
     .login, .dashboard {
-  max-width: 420px;
-  margin: 60px auto;
-  background: #111827;
-  padding: 24px;
-  border-radius: 8px;
-  display: block;
-}
-
+      max-width: 420px;
+      margin: 60px auto;
+      background: #111827;
+      padding: 24px;
+      border-radius: 8px;
+      display: block;
     }
     h1, h2 {
       margin-top: 0;
@@ -164,161 +162,6 @@
     if (savedUser) {
       showDashboard(JSON.parse(savedUser));
     }
-  <script>
-  const loginBox = document.getElementById("loginBox");
-  const dashboardBox = document.getElementById("dashboardBox");
-
-  // --- JOB DATA (TEMP STORAGE) ---
-  let jobs = [];
-
-  // Show login on load
-  loginBox.style.display = "block";
-
-  async function login() {
-    const u = document.getElementById("username").value;
-    const p = document.getElementById("password").value;
-    const msg = document.getElementById("msg");
-    msg.innerText = "";
-
-    if (!u || !p) {
-      msg.innerText = "Enter username and password";
-      return;
-    }
-
-    try {
-      const res = await fetch(
-        "https://moderno-tech-backend.onrender.com/login",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ username: u, password: p })
-        }
-      );
-
-      if (!res.ok) {
-        msg.innerText = "Invalid login details";
-        return;
-      }
-
-      const data = await res.json();
-      localStorage.setItem("user", JSON.stringify(data));
-      showDashboard(data);
-    } catch (e) {
-      msg.innerText = "Backend not reachable";
-    }
-  }
-
-  function showDashboard(user) {
-    loginBox.style.display = "none";
-    dashboardBox.style.display = "block";
-    document.getElementById("welcome").innerText =
-      "Welcome, " + user.username + " (" + user.role + ")";
-  }
-
-  function logout() {
-    localStorage.removeItem("user");
-    dashboardBox.style.display = "none";
-    loginBox.style.display = "block";
-  }
-
-  function goCreateJob() {
-    const form = `
-      <h2>Create Job</h2>
-
-      <input id="custName" placeholder="Customer Name" />
-      <input id="custPhone" placeholder="Phone Number" />
-
-      <select id="jobType">
-        <option>Banner</option>
-        <option>Sticker</option>
-        <option>Photo</option>
-        <option>Fabric</option>
-        <option>Other</option>
-      </select>
-
-      <select id="priceType" onchange="togglePriceType()">
-        <option value="sqft">Square Feet</option>
-        <option value="fixed">Fixed Price</option>
-      </select>
-
-      <div id="sqftBox">
-        <input id="width" type="number" placeholder="Width" />
-        <input id="height" type="number" placeholder="Height" />
-        <input id="unitPrice" type="number" placeholder="Unit Price (₵)" />
-      </div>
-
-      <div id="fixedBox" style="display:none">
-        <input id="fixedPrice" type="number" placeholder="Fixed Price (₵)" />
-      </div>
-
-      <button onclick="calculateTotal()">Calculate</button>
-
-      <p id="total"></p>
-
-      <button onclick="saveJob()">Save Job</button>
-      <button class="secondary" onclick="backToDashboard()">Back</button>
-    `;
-
-    dashboardBox.innerHTML = form;
-  }
-
-  function togglePriceType() {
-    const type = document.getElementById("priceType").value;
-    document.getElementById("sqftBox").style.display =
-      type === "sqft" ? "block" : "none";
-    document.getElementById("fixedBox").style.display =
-      type === "fixed" ? "block" : "none";
-  }
-
-  function calculateTotal() {
-    const type = document.getElementById("priceType").value;
-    let subtotal = 0;
-
-    if (type === "sqft") {
-      const w = Number(document.getElementById("width").value);
-      const h = Number(document.getElementById("height").value);
-      const p = Number(document.getElementById("unitPrice").value);
-      subtotal = w * h * p;
-    } else {
-      subtotal = Number(document.getElementById("fixedPrice").value);
-    }
-
-    const vat = subtotal * 0.125;
-    const total = subtotal + vat;
-
-    document.getElementById("total").innerText =
-      `Subtotal: ₵${subtotal.toFixed(2)} | VAT: ₵${vat.toFixed(2)} | Total: ₵${total.toFixed(2)}`;
-  }
-
-  function saveJob() {
-    const job = {
-      customer: document.getElementById("custName").value,
-      phone: document.getElementById("custPhone").value,
-      total: document.getElementById("total").innerText,
-      date: new Date().toLocaleString()
-    };
-
-    jobs.push(job);
-    alert("Job saved successfully");
-    backToDashboard();
-  }
-
-  function backToDashboard() {
-    location.reload();
-  }
-
-  function goViewJobs() {
-    alert("Jobs count: " + jobs.length);
-  }
-
-  // Auto-login
-  const savedUser = localStorage.getItem("user");
-  if (savedUser) {
-    showDashboard(JSON.parse(savedUser));
-  }
-</script>
-
+  </script>
 </body>
 </html>
-
-
