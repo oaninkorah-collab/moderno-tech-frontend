@@ -14,7 +14,7 @@
     }
     .box {
       max-width: 420px;
-      margin: 80px auto;
+      margin: 60px auto;
       background: #111827;
       padding: 24px;
       border-radius: 8px;
@@ -24,7 +24,7 @@
       text-align: center;
       margin-top: 0;
     }
-    input, button {
+    input, select, button {
       width: 100%;
       padding: 12px;
       margin-bottom: 12px;
@@ -46,17 +46,12 @@
       color: #f87171;
       text-align: center;
     }
-    .cards {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      margin: 16px 0;
+    .row {
+      display: flex;
+      gap: 8px;
     }
-    .card {
-      background: #1f2937;
-      padding: 16px;
-      border-radius: 6px;
-      text-align: center;
+    .row input {
+      flex: 1;
     }
   </style>
 </head>
@@ -66,10 +61,8 @@
   <!-- LOGIN -->
   <div class="box" id="loginBox">
     <h1>Moderno Tech</h1>
-
     <input id="username" placeholder="Username" />
     <input id="password" type="password" placeholder="Password" />
-
     <button onclick="login()">Login</button>
     <p id="msg" class="error"></p>
   </div>
@@ -77,53 +70,72 @@
   <!-- DASHBOARD -->
   <div class="box" id="dashboardBox">
     <h2 id="welcome"></h2>
-
-    <div class="cards">
-      <div class="card">
-        <strong>Today’s Sales</strong>
-        <p>₵0.00</p>
-      </div>
-      <div class="card">
-        <strong>Jobs Today</strong>
-        <p>0</p>
-      </div>
-    </div>
-
-    <button onclick="alert('Create Job coming next')">Create Job</button>
+    <button onclick="openCreateJob()">Create Job</button>
     <button class="secondary" onclick="alert('View Jobs coming next')">View Jobs</button>
     <button class="logout" onclick="logout()">Logout</button>
+  </div>
+
+  <!-- CREATE JOB -->
+  <div class="box" id="jobBox">
+    <h2>Create Job</h2>
+
+    <input id="custName" placeholder="Customer Name" />
+    <input id="custPhone" placeholder="Phone Number" />
+
+    <select id="jobType">
+      <option>Banner</option>
+      <option>Sticker</option>
+      <option>Photo</option>
+      <option>Fabric</option>
+      <option>Other</option>
+    </select>
+
+    <select id="priceType" onchange="togglePrice()">
+      <option value="sqft">Square Feet</option>
+      <option value="fixed">Fixed Price</option>
+    </select>
+
+    <div id="sqftBox">
+      <div class="row">
+        <input id="width" type="number" placeholder="Width" />
+        <input id="height" type="number" placeholder="Height" />
+      </div>
+      <input id="unitPrice" type="number" placeholder="Unit Price (₵)" />
+    </div>
+
+    <div id="fixedBox" style="display:none">
+      <input id="fixedPrice" type="number" placeholder="Fixed Price (₵)" />
+    </div>
+
+    <button onclick="calculate()">Calculate</button>
+    <p id="total"></p>
+
+    <button onclick="saveJob()">Save Job</button>
+    <button class="secondary" onclick="backToDashboard()">Back</button>
   </div>
 
   <script>
     const loginBox = document.getElementById("loginBox");
     const dashboardBox = document.getElementById("dashboardBox");
-    const welcome = document.getElementById("welcome");
+    const jobBox = document.getElementById("jobBox");
 
-    function showLogin() {
-      loginBox.style.display = "block";
-      dashboardBox.style.display = "none";
-    }
+    let jobs = [];
 
-    function showDashboard(user) {
+    function show(box) {
       loginBox.style.display = "none";
-      dashboardBox.style.display = "block";
-      welcome.innerText = "Welcome, " + user.username + " (" + user.role + ")";
+      dashboardBox.style.display = "none";
+      jobBox.style.display = "none";
+      box.style.display = "block";
     }
 
     async function login() {
-      const u = document.getElementById("username").value;
-      const p = document.getElementById("password").value;
-      const msg = document.getElementById("msg");
+      const u = username.value;
+      const p = password.value;
       msg.innerText = "";
-
-      if (!u || !p) {
-        msg.innerText = "Enter username and password";
-        return;
-      }
 
       try {
         const res = await fetch(
-          "https://moderno-tech-backend-1.onrender.com/login",
+          "https://moderno-tech-backend.onrender.com/login",
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -132,32 +144,74 @@
         );
 
         if (!res.ok) {
-          msg.innerText = "Invalid login details";
+          msg.innerText = "Invalid login";
           return;
         }
 
         const user = await res.json();
         localStorage.setItem("user", JSON.stringify(user));
-        showDashboard(user);
-      } catch (e) {
+        welcome.innerText = "Welcome, " + user.username;
+        show(dashboardBox);
+      } catch {
         msg.innerText = "Backend not reachable";
       }
     }
 
     function logout() {
       localStorage.removeItem("user");
-      showLogin();
+      show(loginBox);
     }
 
-    // Auto-login if already logged in
-    const savedUser = localStorage.getItem("user");
-    if (savedUser) {
-      showDashboard(JSON.parse(savedUser));
+    function openCreateJob() {
+      show(jobBox);
+    }
+
+    function backToDashboard() {
+      show(dashboardBox);
+    }
+
+    function togglePrice() {
+      const t = priceType.value;
+      sqftBox.style.display = t === "sqft" ? "block" : "none";
+      fixedBox.style.display = t === "fixed" ? "block" : "none";
+    }
+
+    function calculate() {
+      let subtotal = 0;
+
+      if (priceType.value === "sqft") {
+        subtotal = width.value * height.value * unitPrice.value;
+      } else {
+        subtotal = Number(fixedPrice.value);
+      }
+
+      const vat = subtotal * 0.125;
+      const total = subtotal + vat;
+
+      document.getElementById("total").innerText =
+        `Subtotal ₵${subtotal.toFixed(2)} | VAT ₵${vat.toFixed(2)} | Total ₵${total.toFixed(2)}`;
+    }
+
+    function saveJob() {
+      jobs.push({
+        customer: custName.value,
+        phone: custPhone.value,
+        total: total.innerText,
+        date: new Date().toLocaleString()
+      });
+
+      alert("Job saved successfully");
+      backToDashboard();
+    }
+
+    // Auto-login
+    const saved = localStorage.getItem("user");
+    if (saved) {
+      welcome.innerText = "Welcome, " + JSON.parse(saved).username;
+      show(dashboardBox);
     } else {
-      showLogin();
+      show(loginBox);
     }
   </script>
-
 </body>
 </html>
-
