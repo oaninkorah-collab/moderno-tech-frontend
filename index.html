@@ -174,39 +174,44 @@
       `Subtotal ₵${subtotal.toFixed(2)} | VAT ₵${vat.toFixed(2)} | Total ₵${(subtotal+vat).toFixed(2)}`;
   }
 
-  function generateReceipt() {
-    let subtotal = priceType.value === "sqft"
-      ? width.value * height.value * unitPrice.value
-      : Number(fixedPrice.value);
-    const vat = subtotal * 0.125;
-    const total = subtotal + vat;
+  async function generateReceipt() {
+  let subtotal = priceType.value === "sqft"
+    ? width.value * height.value * unitPrice.value
+    : Number(fixedPrice.value);
 
-    receiptContent.innerHTML = `
-      <h3>Moderno Tech</h3>
-      <p>Receipt #: REC-${Date.now()}</p>
-      <hr>
-      <p><strong>Customer:</strong> ${custName.value}</p>
-      <p><strong>Phone:</strong> ${custPhone.value}</p>
-      <p><strong>Job:</strong> ${jobType.value}</p>
-      <hr>
-      <p>Subtotal: ₵${subtotal.toFixed(2)}</p>
-      <p>VAT (12.5%): ₵${vat.toFixed(2)}</p>
-      <h3>Total: ₵${total.toFixed(2)}</h3>
-      <p style="text-align:center;"><strong>PAID</strong></p>
-      <hr>
-      <p style="text-align:center;">Thank you for your business</p>
-    `;
-    show(receiptBox);
-  }
+  const vat = subtotal * 0.125;
+  const total = subtotal + vat;
 
-  const saved = localStorage.getItem("user");
-  if (saved) {
-    welcome.innerText = "Welcome, " + JSON.parse(saved).username;
-    show(dashboardBox);
-  } else {
-    show(loginBox);
-  }
-</script>
+  const jobData = {
+    customer: custName.value,
+    phone: custPhone.value,
+    jobType: jobType.value,
+    subtotal,
+    vat,
+    total
+  };
 
-</body>
-</html>
+  // SAVE TO BACKEND
+  await fetch("https://moderno-tech-backend-1.onrender.com/jobs", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(jobData)
+  });
+
+  receiptContent.innerHTML = `
+    <h3>Moderno Tech</h3>
+    <p>Receipt #: REC-${Date.now()}</p>
+    <hr>
+    <p><strong>Customer:</strong> ${jobData.customer}</p>
+    <p><strong>Phone:</strong> ${jobData.phone}</p>
+    <p><strong>Job:</strong> ${jobData.jobType}</p>
+    <hr>
+    <p>Subtotal: ₵${subtotal.toFixed(2)}</p>
+    <p>VAT (12.5%): ₵${vat.toFixed(2)}</p>
+    <h3>Total: ₵${total.toFixed(2)}</h3>
+    <p style="text-align:center;"><strong>PAID</strong></p>
+    <hr>
+    <p style="text-align:center;">Thank you for your business</p>
+  `;
+  show(receiptBox);
+}
