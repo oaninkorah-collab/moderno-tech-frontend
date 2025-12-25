@@ -1,91 +1,91 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Moderno Tech – Login</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <style>
-      body {
-        font-family: Arial, sans-serif;
-        background: #0f172a;
-        color: #fff;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
+<head>
+  <meta charset="UTF-8" />
+  <title>Moderno Tech – Login</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #0f172a;
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .box {
+      background: #111827;
+      padding: 30px;
+      border-radius: 8px;
+      width: 100%;
+      max-width: 360px;
+      text-align: center;
+    }
+    input, button {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 12px;
+      border-radius: 5px;
+      border: none;
+    }
+    button {
+      background: #2563eb;
+      color: white;
+      cursor: pointer;
+    }
+    .error {
+      color: #f87171;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="box">
+    <h1>Moderno Tech</h1>
+
+    <input id="username" placeholder="Username" />
+    <input id="password" type="password" placeholder="Password" />
+
+    <button onclick="login()">Login</button>
+
+    <p id="msg" class="error"></p>
+  </div>
+
+  <script>
+    async function login() {
+      const u = document.getElementById("username").value;
+      const p = document.getElementById("password").value;
+      const msg = document.getElementById("msg");
+
+      msg.innerText = "";
+
+      if (!u || !p) {
+        msg.innerText = "Enter username and password";
+        return;
       }
-      .login-container {
-        background: #111827;
-        padding: 30px;
-        border-radius: 8px;
-        width: 100%;
-        max-width: 360px;
-        text-align: center;
-      }
-      input, button {
-        width: 100%;
-        padding: 12px;
-        margin-bottom: 12px;
-        border-radius: 5px;
-        border: none;
-      }
-      button {
-        background: #2563eb;
-        color: white;
-        cursor: pointer;
-      }
-      .error {
-        color: #f87171;
-      }
-    </style>
-  </head>
 
-  <body>
-    <div class="login-container">
-      <h1>Moderno Tech</h1>
+      try {
+        const res = await fetch(
+          "https://moderno-tech-backend-1.onrender.com/login",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username: u, password: p })
+          }
+        );
 
-      <input id="username" type="text" placeholder="Username" />
-      <input id="password" type="password" placeholder="Password" />
-
-      <button onclick="login()">Login</button>
-
-      <p id="error" class="error"></p>
-    </div>
-
-    <script>
-      async function login() {
-        const username = document.getElementById("username").value;
-        const password = document.getElementById("password").value;
-        const error = document.getElementById("error");
-
-        error.innerText = "";
-
-        if (!username || !password) {
-          error.innerText = "Username and password are required";
+        if (!res.ok) {
+          msg.innerText = "Invalid login details";
           return;
         }
 
-        try {
-          const res = await fetch(
-            "https://moderno-tech-backend.onrender.com/login",
-            {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ username, password })
-            }
-          );
-
-          if (!res.ok) {
-            error.innerText = "Invalid login details";
-            return;
-          }
-
-          const data = await res.json();
-          alert("Login successful as " + data.username);
-        } catch (e) {
-          error.innerText = "Server not reachable";
-        }
+        const data = await res.json();
+        alert("Login successful as " + data.username);
+      } catch (e) {
+        msg.innerText = "Backend not reachable";
       }
-    </script>
-  </body>
+    }
+  </script>
+</body>
 </html>
