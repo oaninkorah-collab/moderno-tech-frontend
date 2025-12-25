@@ -12,10 +12,12 @@ async function login() {
 
   try {
     const res = await fetch(
-      `${import.meta.env.VITE_API_URL}/login`,
+      "https://moderno-tech-backend-1.onrender.com/login",
       {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json"
+        },
         body: JSON.stringify({ username, password })
       }
     );
@@ -28,7 +30,7 @@ async function login() {
     const data = await res.json();
     localStorage.setItem("user", JSON.stringify(data));
 
-    alert("Login successful (Dashboard comes next)");
+    alert("Login successful");
   } catch (err) {
     error.innerText = "Server not reachable";
   }
