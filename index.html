@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <title>Moderno Tech</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -14,20 +15,20 @@
     }
     .box {
       max-width: 420px;
-      margin: 60px auto;
+      margin: 40px auto;
       background: #111827;
       padding: 24px;
       border-radius: 8px;
       display: none;
     }
-    h1, h2 {
+    h1, h2, h3 {
       text-align: center;
       margin-top: 0;
     }
     input, select, button {
       width: 100%;
-      padding: 12px;
-      margin-bottom: 12px;
+      padding: 10px;
+      margin-bottom: 10px;
       border-radius: 5px;
       border: none;
     }
@@ -36,183 +37,176 @@
       color: white;
       cursor: pointer;
     }
-    .secondary {
-      background: #374151;
+    .secondary { background: #374151; }
+    .logout { background: #7c2d12; }
+    .row { display: flex; gap: 8px; }
+    .row div { flex: 1; }
+    .receipt {
+      background: #fff;
+      color: #000;
+      padding: 16px;
+      font-size: 14px;
     }
-    .logout {
-      background: #7c2d12;
-    }
-    .error {
-      color: #f87171;
-      text-align: center;
-    }
-    .row {
-      display: flex;
-      gap: 8px;
-    }
-    .row input {
-      flex: 1;
+    .receipt hr { border: 1px dashed #000; }
+    @media print {
+      body { background: #fff; }
+      .box:not(.receiptBox) { display: none !important; }
+      .receipt { width: 148mm; } /* A5 width */
     }
   </style>
 </head>
 
 <body>
 
-  <!-- LOGIN -->
-  <div class="box" id="loginBox">
-    <h1>Moderno Tech</h1>
-    <input id="username" placeholder="Username" />
-    <input id="password" type="password" placeholder="Password" />
-    <button onclick="login()">Login</button>
-    <p id="msg" class="error"></p>
-  </div>
+<!-- LOGIN -->
+<div class="box" id="loginBox">
+  <h1>Moderno Tech</h1>
+  <input id="username" placeholder="Username" />
+  <input id="password" type="password" placeholder="Password" />
+  <button onclick="login()">Login</button>
+  <p id="msg"></p>
+</div>
 
-  <!-- DASHBOARD -->
-  <div class="box" id="dashboardBox">
-    <h2 id="welcome"></h2>
-    <button onclick="openCreateJob()">Create Job</button>
-    <button class="secondary" onclick="alert('View Jobs coming next')">View Jobs</button>
-    <button class="logout" onclick="logout()">Logout</button>
-  </div>
+<!-- DASHBOARD -->
+<div class="box" id="dashboardBox">
+  <h2 id="welcome"></h2>
+  <button onclick="openJob()">Create Job</button>
+  <button class="secondary" onclick="logout()">Logout</button>
+</div>
 
-  <!-- CREATE JOB -->
-  <div class="box" id="jobBox">
-    <h2>Create Job</h2>
+<!-- CREATE JOB -->
+<div class="box" id="jobBox">
+  <h2>Create Job</h2>
 
-    <input id="custName" placeholder="Customer Name" />
-    <input id="custPhone" placeholder="Phone Number" />
+  <input id="custName" placeholder="Customer Name" />
+  <input id="custPhone" placeholder="Phone Number" />
 
-    <select id="jobType">
-      <option>Banner</option>
-      <option>Sticker</option>
-      <option>Photo</option>
-      <option>Fabric</option>
-      <option>Other</option>
-    </select>
+  <select id="jobType">
+    <option>Banner</option>
+    <option>Sticker</option>
+    <option>Photo</option>
+    <option>Fabric</option>
+  </select>
 
-    <select id="priceType" onchange="togglePrice()">
-      <option value="sqft">Square Feet</option>
-      <option value="fixed">Fixed Price</option>
-    </select>
+  <select id="priceType" onchange="togglePrice()">
+    <option value="sqft">Square Feet</option>
+    <option value="fixed">Fixed Price</option>
+  </select>
 
-    <div id="sqftBox">
-      <div class="row">
-        <input id="width" type="number" placeholder="Width" />
-        <input id="height" type="number" placeholder="Height" />
-      </div>
-      <input id="unitPrice" type="number" placeholder="Unit Price (₵)" />
+  <div id="sqftBox">
+    <div class="row">
+      <div><input id="width" placeholder="Width" type="number" /></div>
+      <div><input id="height" placeholder="Height" type="number" /></div>
     </div>
-
-    <div id="fixedBox" style="display:none">
-      <input id="fixedPrice" type="number" placeholder="Fixed Price (₵)" />
-    </div>
-
-    <button onclick="calculate()">Calculate</button>
-    <p id="total"></p>
-
-    <button onclick="saveJob()">Save Job</button>
-    <button class="secondary" onclick="backToDashboard()">Back</button>
+    <input id="unitPrice" placeholder="Unit Price" type="number" />
   </div>
 
-  <script>
-    const loginBox = document.getElementById("loginBox");
-    const dashboardBox = document.getElementById("dashboardBox");
-    const jobBox = document.getElementById("jobBox");
+  <div id="fixedBox" style="display:none">
+    <input id="fixedPrice" placeholder="Fixed Price" type="number" />
+  </div>
 
-    let jobs = [];
+  <button onclick="calculate()">Calculate</button>
+  <p id="calcResult"></p>
 
-    function show(box) {
-      loginBox.style.display = "none";
-      dashboardBox.style.display = "none";
-      jobBox.style.display = "none";
-      box.style.display = "block";
+  <button onclick="generateReceipt()">Generate Receipt</button>
+  <button class="secondary" onclick="show(dashboardBox)">Back</button>
+</div>
+
+<!-- RECEIPT -->
+<div class="box receiptBox" id="receiptBox">
+  <div class="receipt" id="receiptContent"></div>
+  <button onclick="window.print()">Print Receipt</button>
+  <button class="secondary" onclick="show(dashboardBox)">Done</button>
+</div>
+
+<script>
+  const loginBox = document.getElementById("loginBox");
+  const dashboardBox = document.getElementById("dashboardBox");
+  const jobBox = document.getElementById("jobBox");
+  const receiptBox = document.getElementById("receiptBox");
+
+  function show(box) {
+    [loginBox, dashboardBox, jobBox, receiptBox].forEach(b => b.style.display = "none");
+    box.style.display = "block";
+  }
+
+  async function login() {
+    const res = await fetch("https://moderno-tech-backend-1.onrender.com/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username: username.value, password: password.value })
+    });
+
+    if (!res.ok) {
+      msg.innerText = "Invalid login";
+      return;
     }
 
-    async function login() {
-      const u = username.value;
-      const p = password.value;
-      msg.innerText = "";
+    const user = await res.json();
+    localStorage.setItem("user", JSON.stringify(user));
+    welcome.innerText = "Welcome, " + user.username;
+    show(dashboardBox);
+  }
 
-      try {
-        const res = await fetch(
-          "https://moderno-tech-backend-1.onrender.com/login",
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ username: u, password: p })
-          }
-        );
+  function logout() {
+    localStorage.clear();
+    show(loginBox);
+  }
 
-        if (!res.ok) {
-          msg.innerText = "Invalid login";
-          return;
-        }
+  function openJob() {
+    show(jobBox);
+  }
 
-        const user = await res.json();
-        localStorage.setItem("user", JSON.stringify(user));
-        welcome.innerText = "Welcome, " + user.username;
-        show(dashboardBox);
-      } catch {
-        msg.innerText = "Backend not reachable";
-      }
-    }
+  function togglePrice() {
+    sqftBox.style.display = priceType.value === "sqft" ? "block" : "none";
+    fixedBox.style.display = priceType.value === "fixed" ? "block" : "none";
+  }
 
-    function logout() {
-      localStorage.removeItem("user");
-      show(loginBox);
-    }
-
-    function openCreateJob() {
-      show(jobBox);
-    }
-
-    function backToDashboard() {
-      show(dashboardBox);
-    }
-
-    function togglePrice() {
-      const t = priceType.value;
-      sqftBox.style.display = t === "sqft" ? "block" : "none";
-      fixedBox.style.display = t === "fixed" ? "block" : "none";
-    }
-
-    function calculate() {
-      let subtotal = 0;
-
-      if (priceType.value === "sqft") {
-        subtotal = width.value * height.value * unitPrice.value;
-      } else {
-        subtotal = Number(fixedPrice.value);
-      }
-
-      const vat = subtotal * 0.125;
-      const total = subtotal + vat;
-
-      document.getElementById("total").innerText =
-        `Subtotal ₵${subtotal.toFixed(2)} | VAT ₵${vat.toFixed(2)} | Total ₵${total.toFixed(2)}`;
-    }
-
-    function saveJob() {
-      jobs.push({
-        customer: custName.value,
-        phone: custPhone.value,
-        total: total.innerText,
-        date: new Date().toLocaleString()
-      });
-
-      alert("Job saved successfully");
-      backToDashboard();
-    }
-
-    // Auto-login
-    const saved = localStorage.getItem("user");
-    if (saved) {
-      welcome.innerText = "Welcome, " + JSON.parse(saved).username;
-      show(dashboardBox);
+  function calculate() {
+    let subtotal = 0;
+    if (priceType.value === "sqft") {
+      subtotal = width.value * height.value * unitPrice.value;
     } else {
-      show(loginBox);
+      subtotal = Number(fixedPrice.value);
     }
-  </script>
+    const vat = subtotal * 0.125;
+    calcResult.innerText =
+      `Subtotal ₵${subtotal.toFixed(2)} | VAT ₵${vat.toFixed(2)} | Total ₵${(subtotal+vat).toFixed(2)}`;
+  }
+
+  function generateReceipt() {
+    let subtotal = priceType.value === "sqft"
+      ? width.value * height.value * unitPrice.value
+      : Number(fixedPrice.value);
+    const vat = subtotal * 0.125;
+    const total = subtotal + vat;
+
+    receiptContent.innerHTML = `
+      <h3>Moderno Tech</h3>
+      <p>Receipt #: REC-${Date.now()}</p>
+      <hr>
+      <p><strong>Customer:</strong> ${custName.value}</p>
+      <p><strong>Phone:</strong> ${custPhone.value}</p>
+      <p><strong>Job:</strong> ${jobType.value}</p>
+      <hr>
+      <p>Subtotal: ₵${subtotal.toFixed(2)}</p>
+      <p>VAT (12.5%): ₵${vat.toFixed(2)}</p>
+      <h3>Total: ₵${total.toFixed(2)}</h3>
+      <p style="text-align:center;"><strong>PAID</strong></p>
+      <hr>
+      <p style="text-align:center;">Thank you for your business</p>
+    `;
+    show(receiptBox);
+  }
+
+  const saved = localStorage.getItem("user");
+  if (saved) {
+    welcome.innerText = "Welcome, " + JSON.parse(saved).username;
+    show(dashboardBox);
+  } else {
+    show(loginBox);
+  }
+</script>
+
 </body>
 </html>
-
